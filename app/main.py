@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.clients.router import router as clients_router
 
-
 app = FastAPI()
 
 # Set API endpoints on router
@@ -16,5 +15,4 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods, including OPTIONS
     allow_headers=["*"],  # Allows all headers
 )
-
 

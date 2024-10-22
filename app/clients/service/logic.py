@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 from itertools import combinations_with_replacement
 from itertools import product
+from app.database import get_db
 
 column_intervention = [
     'Life Stabilization',
@@ -208,6 +209,40 @@ def interpret_and_calculate(data):
     # build output dict
     print(f"RESULTS: {results}")
     return results
+
+def get_client_data(age: int, gender: int, work_experience: int):
+    db = next(get_db())
+    cursor = db.cursor()
+    query = "SELECT * FROM clients WHERE age = %s AND gender = %s AND work_experience = %s"
+    values = (age, gender, work_experience)
+    cursor.execute(query, values)
+    result = cursor.fetchone()
+    cursor.close()
+    if result:
+        return dict(zip(cursor.column_names, result))
+    return None
+
+def update_client_data(client_update: dict):
+    db = next(get_db())
+    cursor = db.cursor()
+    query = "UPDATE clients SET ... WHERE age = %s AND gender = %s AND work_experience = %s"
+    values = (client_update['age'], client_update['gender'], client_update['work_experience'])
+    cursor.execute(query, values)
+    db.commit()
+    cursor.close()
+    updated_client = get_client_data(client_update['age'], client_update['gender'], client_update['work_experience'])
+    return updated_client
+
+def delete_client_data(age: int, gender: int, work_experience: int):
+    db = next(get_db())
+    cursor = db.cursor()
+    query = "DELETE FROM clients WHERE age = %s AND gender = %s AND work_experience = %s"
+    values = (age, gender, work_experience)
+    cursor.execute(query, values)
+    db.commit()
+    affected_rows = cursor.rowcount
+    cursor.close()
+    return affected_rows > 0
 
 if __name__ == "__main__":
     print("running")
