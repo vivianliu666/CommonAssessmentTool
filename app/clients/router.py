@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from app.clients.service.logic import interpret_and_calculate, get_client_data, update_client_data, delete_client_data
+from app.clients.service.logic import interpret_and_calculate, create_client_data, get_client_data, update_client_data, delete_client_data
 from app.clients.schema import PredictionInput
 
 # Define a Pydantic model for client data
@@ -50,6 +50,18 @@ async def predict(data: PredictionInput):
 
 @router.post("/", response_model=ClientData)
 async def create_client(client_data: ClientData):
+    """
+    Create a new client record in the system.
+
+    Args:
+        client_data (ClientData): The data for the new client to be created.
+
+    Returns:
+        ClientData: The newly created client data.
+
+    Raises:
+        HTTPException: Returns a 400 error if the client creation fails.
+    """
     created_client = create_client_data(client_data.dict())
     if created_client:
         return created_client
