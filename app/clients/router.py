@@ -48,6 +48,14 @@ async def predict(data: PredictionInput):
     print(data.model_dump())
     return interpret_and_calculate(data.model_dump())
 
+@router.post("/", response_model=ClientData)
+async def create_client(client_data: ClientData):
+    created_client = create_client_data(client_data.dict())
+    if created_client:
+        return created_client
+    else:
+        raise HTTPException(status_code=400, detail="Unable to create client")
+
 @router.get("/", response_model=ClientData)
 async def get_client(age: int, gender: int, work_experience: int):
     """

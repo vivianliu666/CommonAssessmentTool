@@ -210,6 +210,57 @@ def interpret_and_calculate(data):
     print(f"RESULTS: {results}")
     return results
 
+def create_client_data(client_data: dict):
+    """
+    Insert a new client record into the database.
+
+    Args:
+        client_data (dict): A dictionary containing the client data to be inserted.
+
+    Returns:
+        dict: The inserted client data if successful; None otherwise.
+    """
+    db = next(get_db())
+    cursor = db.cursor()
+
+    # Define the SQL INSERT statement
+    query = """
+    INSERT INTO clients (age, gender, work_experience, canada_workex, dep_num, canada_born, citizen_status, 
+                         level_of_schooling, fluent_english, reading_english_scale, speaking_english_scale, 
+                         writing_english_scale, numeracy_scale, computer_scale, transportation_bool, caregiver_bool, 
+                         housing, income_source, felony_bool, attending_school, currently_employed, 
+                         substance_use, time_unemployed, need_mental_health_support_bool, employment_assistance, 
+                         life_stabilization, retention_services, specialized_services, employment_related_financial_supports, 
+                         employer_financial_supports, enhanced_referrals, success_rate)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    # Prepare the values from the client_data dictionary
+    values = (
+        client_data['age'], client_data['gender'], client_data['work_experience'], client_data['canada_workex'],
+        client_data['dep_num'], client_data['canada_born'], client_data['citizen_status'], client_data['level_of_schooling'],
+        client_data['fluent_english'], client_data['reading_english_scale'], client_data['speaking_english_scale'],
+        client_data['writing_english_scale'], client_data['numeracy_scale'], client_data['computer_scale'],
+        client_data['transportation_bool'], client_data['caregiver_bool'], client_data['housing'], client_data['income_source'],
+        client_data['felony_bool'], client_data['attending_school'], client_data['currently_employed'],
+        client_data['substance_use'], client_data['time_unemployed'], client_data['need_mental_health_support_bool'],
+        client_data['employment_assistance'], client_data['life_stabilization'], client_data['retention_services'],
+        client_data['specialized_services'], client_data['employment_related_financial_supports'],
+        client_data['employer_financial_supports'], client_data['enhanced_referrals'], client_data['success_rate']
+    )
+
+    # Execute the query and commit the transaction
+    try:
+        cursor.execute(query, values)
+        db.commit()
+        cursor.close()
+        return client_data  # Returning the inserted data
+    except Exception as e:
+        print(f"Error inserting client data: {e}")
+        db.rollback()
+        cursor.close()
+        return None
+
 def get_client_data(age: int, gender: int, work_experience: int):
     db = next(get_db())
     cursor = db.cursor()
