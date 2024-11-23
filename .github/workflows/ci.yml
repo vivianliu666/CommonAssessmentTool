@@ -11,31 +11,30 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1
+      # Step 1: Checkout Code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step 2
+      # Step 2: Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      # Step 3
+      # Step 3: Install Dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4
+      # Step 4: Run Pylint
       - name: Run Pylint
         run: |
           pip install pylint
           pylint app/ tests/
 
-      # Step 5
+      # Step 5: Run Tests
       - name: Run Tests
         run: |
           pip install pytest
