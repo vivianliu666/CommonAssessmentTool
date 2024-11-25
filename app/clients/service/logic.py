@@ -1,214 +1,163 @@
-from typing import List
-import pandas as pd
-import json
-import numpy as np
-import pickle
-from itertools import combinations_with_replacement
-from itertools import product
-from app.database import get_db
-
-column_intervention = [
-    'Life Stabilization',
-    'General Employment Assistance Services',
-    'Retention Services',
-    'Specialized Services',
-    'Employment-Related Financial Supports for Job Seekers and Employers', 
-    'Employer Financial Supports',
-    'Enhanced Referrals for Skills Development'
-]
-
-#loads the model into logic
+"""
+This module provides logic for client data processing and intervention analysis.
+It includes functions for cleaning input data, creating matrices for model prediction,
+and interacting with the database for CRUD operations on client data.
+"""
 
 import os
+import pickle
+from itertools import product
+import numpy as np
+from app.database import get_db
 
+# Column names for interventions
+column_intervention = [
+    'Life Stabilization', 'General Employment Assistance Services', 'Retention Services',
+    'Specialized Services', 'Employment-Related Financial Supports for Job Seekers and Employers',
+    'Employer Financial Supports', 'Enhanced Referrals for Skills Development'
+]
+
+# Load the model
 current_dir = os.path.dirname(os.path.abspath(__file__))
 filename = os.path.join(current_dir, 'model.pkl')
-model = pickle.load(open(filename, "rb"))
+
+with open(filename, "rb") as file:
+    model = pickle.load(file)
 
 
 def clean_input_data(data):
-    #translate input into wahtever we trained the model on, numerical data in a specific order
-    columns = ["age","gender","work_experience","canada_workex","dep_num",	"canada_born",	
-               "citizen_status",	"level_of_schooling",	"fluent_english",	"reading_english_scale",	
-               "speaking_english_scale",	"writing_english_scale",	"numeracy_scale",	"computer_scale",	
-               "transportation_bool",	"caregiver_bool",	"housing",	"income_source",	"felony_bool",	"attending_school",	
-               "currently_employed",	"substance_use",	"time_unemployed",	"need_mental_health_support_bool"]
-    demographics = {
-        'age': data['age'],
-        'gender': data['gender'],
-        'work_experience': data['work_experience'],
-        'canada_workex': data['canada_workex'],
-        'dep_num': data['dep_num'],
-        'canada_born': data['canada_born'],
-        'citizen_status': data['citizen_status'],
-        'level_of_schooling': data['level_of_schooling'],
-        'fluent_english': data['fluent_english'],
-        'reading_english_scale': data['reading_english_scale'],
-        'speaking_english_scale': data['speaking_english_scale'],
-        'writing_english_scale': data['writing_english_scale'],
-        'numeracy_scale': data['numeracy_scale'],
-        'computer_scale': data['computer_scale'],
-        'transportation_bool': data['transportation_bool'],
-        'caregiver_bool': data['caregiver_bool'],
-        'housing': data['housing'],
-        'income_source': data['income_source'],
-        'felony_bool': data['felony_bool'],
-        'attending_school': data['attending_school'],
-        'currently_employed': data['currently_employed'],
-        'substance_use': data['substance_use'],
-        'time_unemployed': data['time_unemployed'],
-        'need_mental_health_support_bool': data['need_mental_health_support_bool']
-    }
-    output = []
-    for column in columns:
-        data = demographics.get(column, None) #default is None, and if you want to pass a value, can return any value
-        if isinstance(data, str):
-            data = convert_text(column, data)
-        output.append(data)
-    return output
+    """
+    Cleans and transforms input data into numerical format for model inference.
 
+    Args:
+        data (dict): Raw input data.
 
-def convert_text(column, data:str):
-    # Convert text answers from front end into digits
-    # TODO: ensure that categorical columns match the valid answers in FormNew.jsx (L131)
-    categorical_cols_integers = [
-        {
-            "": 0,
-            "true": 1,
-            "false": 0,
-            "no": 0,
-            "yes": 1,
-            "No": 0,
-            "Yes": 1
-        },
-        {
-            'Grade 0-8': 1,
-            'Grade 9': 2,
-            'Grade 10': 3,
-            'Grade 11': 4,
-            'Grade 12 or equivalent': 5,
-            'OAC or Grade 13': 6,
-            'Some college': 7,
-            'Some university': 8,
-            'Some apprenticeship': 9,
-            'Certificate of Apprenticeship': 10,
-            'Journeyperson': 11,
-            'Certificate/Diploma': 12,
-            'Bachelor’s degree': 13,
-            'Post graduate': 14
-        },
-        {
-            'Renting-private': 1,
-            'Renting-subsidized': 2,
-            'Boarding or lodging': 3,
-            'Homeowner': 4,
-            'Living with family/friend': 5,
-            'Institution': 6,
-            'Temporary second residence': 7,
-            'Band-owned home': 8,
-            'Homeless or transient': 9,
-            'Emergency hostel': 10
-        },
-        {
-            'No Source of Income': 1,
-            'Employment Insurance': 2,
-            'Workplace Safety and Insurance Board': 3,
-            'Ontario Works applied or receiving': 4,
-            'Ontario Disability Support Program applied or receiving': 5,
-            'Dependent of someone receiving OW or ODSP': 6,
-            'Crown Ward': 7,
-            'Employment': 8,
-            'Self-Employment': 9,
-            'Other (specify)': 10
-        }
+    Returns:
+        list: Transformed numerical data.
+    """
+    columns = [
+        "age", "gender", "work_experience", "canada_workex", "dep_num", "canada_born",
+        "citizen_status", "level_of_schooling", "fluent_english", "reading_english_scale",
+        "speaking_english_scale", "writing_english_scale", "numeracy_scale", "computer_scale",
+        "transportation_bool", "caregiver_bool", "housing", "income_source", "felony_bool",
+        "attending_school", "currently_employed", "substance_use", "time_unemployed",
+        "need_mental_health_support_bool"
     ]
-    for category in categorical_cols_integers:
-        print(f"data: {data}")
-        print(f"column: {column}")
-        if data in category:
-            return category[data]
+    cleaned_data = [
+        convert_text(data.get(column, None))
+        for column in columns
+    ]
+    return cleaned_data
 
-    if isinstance(data, str) and data.isnumeric():
-        return int(data)
 
+def convert_text(data):
+    """
+    Converts text input from the frontend into numerical values.
+
+    Args:
+        data (str): Input text data.
+
+    Returns:
+        int or None: Converted numerical value or None if not applicable.
+    """
+    categorical_mapping = {
+        "": 0, "true": 1, "false": 0, "no": 0, "yes": 1, "No": 0, "Yes": 1
+    }
+    if isinstance(data, str):
+        if data.isnumeric():
+            return int(data)
+        return categorical_mapping.get(data, None)
     return data
 
-#creates 128 possible combinations in order to run every possibility through model
+
 def create_matrix(row):
-    data = [row.copy() for _ in range(128)] 
-    perms = intervention_permutations(7)
-    data = np.array(data)
-    perms = np.array(perms)
-    matrix = np.concatenate((data,perms), axis = 1) 
-    return np.array(matrix)
-#create matrix of permutations of 1 and 0 of num length
-def intervention_permutations(num):
-    perms = list(product([0,1],repeat=num))
-    return np.array(perms)
+    """
+    Creates a matrix of all possible intervention combinations.
+
+    Args:
+        row (list): Baseline input data.
+
+    Returns:
+        np.ndarray: Matrix containing all combinations of interventions.
+    """
+    data = np.array([row.copy() for _ in range(128)])
+    permutations = np.array(list(product([0, 1], repeat=7)))
+    matrix = np.concatenate((data, permutations), axis=1)
+    return matrix
+
 
 def get_baseline_row(row):
-    print(type(row))
-    base_interventions = np.array([0]*7) # no interventions
-    row = np.array(row)
-    print(row)
-    print(type(row))
-    line = np.concatenate((row,base_interventions))
-    return line
+    """
+    Creates a baseline row without interventions.
+
+    Args:
+        row (list): Input data.
+
+    Returns:
+        np.ndarray: Baseline row with no interventions.
+    """
+    base_interventions = np.zeros(7, dtype=int)
+    baseline_row = np.concatenate((np.array(row), base_interventions))
+    return baseline_row
+
 
 def intervention_row_to_names(row):
-    names = []
-    for i, value in enumerate(row):
-        if value == 1: 
-            names.append(column_intervention[i])
-    return names
+    """
+    Maps intervention binary indicators to their names.
+
+    Args:
+        row (list): Binary intervention indicators.
+
+    Returns:
+        list: List of intervention names.
+    """
+    return [column_intervention[i] for i, value in enumerate(row) if value == 1]
+
 
 def process_results(baseline, results):
-    ##Example:
     """
-    {
-        baseline_probability: 80 #baseline percentage point with no interventions
-        results: [
-            (85, [A,B,C]) #new percentange with intervention combinations and list of intervention names
-            (89, [B,C])
-            (91, [D,E])
-        ]
-    }
-    """
-    result_list= []
-    for row in results:
-        percent = row[-1] 
-        names = intervention_row_to_names(row)
-        result_list.append((percent,names))
+    Processes baseline and intervention results.
 
-    output = {
-        "baseline": baseline[-1], #if it's an array, want the value inside of the array
-        "interventions": result_list,
+    Args:
+        baseline (float): Baseline prediction value.
+        results (np.ndarray): Matrix of intervention predictions.
+
+    Returns:
+        dict: Dictionary containing baseline and intervention results.
+    """
+    processed_results = [
+        (row[-1], intervention_row_to_names(row[:-1]))
+        for row in results
+    ]
+    return {
+        "baseline": baseline[-1],
+        "interventions": processed_results,
     }
-    return output
+
 
 def interpret_and_calculate(data):
-    raw_data = clean_input_data(data)
-    baseline_row = get_baseline_row(raw_data)
-    baseline_row = baseline_row.reshape(1, -1)
-    print("BASELINE ROW IS",baseline_row)
-    intervention_rows = create_matrix(raw_data)
-    baseline_prediction = model.predict(baseline_row)
-    intervention_predictions = model.predict(intervention_rows)
-    intervention_predictions = intervention_predictions.reshape(-1, 1) #want shape to be a vertical column, not a row
-    result_matrix = np.concatenate((intervention_rows,intervention_predictions), axis = 1) ##CHANGED AXIS
-    
-    # sort this matrix based on prediction
-    # print("RESULT SAMPLE::", result_matrix[:5])
-    result_order = result_matrix[:,-1].argsort() #take all rows and only last column, gives back list of indexes sorted
-    result_matrix = result_matrix[result_order] #indexing the matrix by the order
+    """
+    Cleans input data, generates predictions, and processes results.
 
-    # slice matrix to only top N results
-    result_matrix = result_matrix[-3:,-8:] #-8 for interventions and prediction, want top 3, 3 combinations of intervention
-    # post process results if needed ie make list of names for each row
-    results = process_results(baseline_prediction,result_matrix)
-    # build output dict
-    print(f"RESULTS: {results}")
-    return results
+    Args:
+        data (dict): Raw input data.
+
+    Returns:
+        dict: Dictionary containing baseline and top interventions.
+    """
+    raw_data = clean_input_data(data)
+    baseline_row = get_baseline_row(raw_data).reshape(1, -1)
+    intervention_rows = create_matrix(raw_data)
+
+    baseline_prediction = model.predict(baseline_row)
+    intervention_predictions = model.predict(intervention_rows).reshape(-1, 1)
+
+    result_matrix = np.concatenate((intervention_rows, intervention_predictions), axis=1)
+    sorted_indices = result_matrix[:, -1].argsort()
+    result_matrix = result_matrix[sorted_indices][-3:, -8:]
+
+    return process_results(baseline_prediction, result_matrix)
+
 
 def create_client_data(client_data: dict):
     """
@@ -223,7 +172,6 @@ def create_client_data(client_data: dict):
     db = next(get_db())
     cursor = db.cursor()
 
-    # Define the SQL INSERT statement
     query = """
     INSERT INTO clients (age, gender, work_experience, canada_workex, dep_num, canada_born, citizen_status, 
                          level_of_schooling, fluent_english, reading_english_scale, speaking_english_scale, 
@@ -234,32 +182,19 @@ def create_client_data(client_data: dict):
                          employer_financial_supports, enhanced_referrals, success_rate)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
+    values = tuple(client_data.values())
 
-    # Prepare the values from the client_data dictionary
-    values = (
-        client_data['age'], client_data['gender'], client_data['work_experience'], client_data['canada_workex'],
-        client_data['dep_num'], client_data['canada_born'], client_data['citizen_status'], client_data['level_of_schooling'],
-        client_data['fluent_english'], client_data['reading_english_scale'], client_data['speaking_english_scale'],
-        client_data['writing_english_scale'], client_data['numeracy_scale'], client_data['computer_scale'],
-        client_data['transportation_bool'], client_data['caregiver_bool'], client_data['housing'], client_data['income_source'],
-        client_data['felony_bool'], client_data['attending_school'], client_data['currently_employed'],
-        client_data['substance_use'], client_data['time_unemployed'], client_data['need_mental_health_support_bool'],
-        client_data['employment_assistance'], client_data['life_stabilization'], client_data['retention_services'],
-        client_data['specialized_services'], client_data['employment_related_financial_supports'],
-        client_data['employer_financial_supports'], client_data['enhanced_referrals'], client_data['success_rate']
-    )
-
-    # Execute the query and commit the transaction
     try:
         cursor.execute(query, values)
         db.commit()
-        cursor.close()
-        return client_data  # Returning the inserted data
+        return client_data
     except Exception as e:
         print(f"Error inserting client data: {e}")
         db.rollback()
-        cursor.close()
         return None
+    finally:
+        cursor.close()
+
 
 def get_client_data(age: int, gender: int, work_experience: int):
     db = next(get_db())
