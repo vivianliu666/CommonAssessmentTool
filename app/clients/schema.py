@@ -1,6 +1,14 @@
+"""
+This module defines Pydantic models used for client-related API requests and data validation.
+"""
 from pydantic import BaseModel
 
+
 class PredictionInput(BaseModel):
+    """
+    Represents the input schema for client prediction requests.
+    Includes demographic, work, and personal data for validation.
+    """
     age: int
     gender: str
     work_experience: int

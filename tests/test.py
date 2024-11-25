@@ -1,9 +1,18 @@
+"""
+Unit tests for the `interpret_and_calculate` function in the logic module.
+"""
 import unittest
 from app.clients.service.logic import interpret_and_calculate
 
-class TestLogic(unittest.TestCase):
 
+class TestLogic(unittest.TestCase):
+    """
+    Test cases for the `interpret_and_calculate` function.
+    """
     def test_interpret_and_calculate(self):
+        """
+        Test the `interpret_and_calculate` function for expected output structure.
+        """
         data = {
             'age': 23, 'gender': 1, 'work_experience': 1, 'canada_workex': 1, 'dep_num': 0,
             'canada_born': 1, 'citizen_status': 2, 'level_of_schooling': 2, 'fluent_english': 3,
@@ -14,7 +23,7 @@ class TestLogic(unittest.TestCase):
             'need_mental_health_support_bool': 1
         }
         result = interpret_and_calculate(data)
-        
+
         # Verify that the returned dictionary includes the expected keys
         self.assertIn('baseline', result, "Result should include a 'baseline' key")
         self.assertIn('interventions', result, "Result should include an 'interventions' key")
