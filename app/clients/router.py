@@ -1,12 +1,20 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+"""
+Router for handling client-related API endpoints.
+"""
 
-from app.clients.service.logic import interpret_and_calculate, create_client_data, get_client_data, update_client_data, delete_client_data
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from app.clients.service.logic import (
+    interpret_and_calculate, create_client_data, get_client_data,
+    update_client_data, delete_client_data
+)
 from app.clients.schema import PredictionInput
 
-# Define a Pydantic model for client data
+
 class ClientData(BaseModel):
+    """
+    Pydantic model for client data.
+    """
     age: int
     gender: int
     work_experience: int
@@ -40,13 +48,25 @@ class ClientData(BaseModel):
     enhanced_referrals: int
     success_rate: int
 
+
 router = APIRouter(prefix="/clients", tags=["clients"])
+
 
 @router.post("/predictions")
 async def predict(data: PredictionInput):
+    """
+    Predict success rate based on input data.
+
+    Args:
+        data (PredictionInput): Input data for prediction.
+
+    Returns:
+        dict: Prediction results.
+    """
     print("HERE")
     print(data.model_dump())
     return interpret_and_calculate(data.model_dump())
+
 
 @router.post("/", response_model=ClientData)
 async def create_client(client_data: ClientData):
@@ -65,8 +85,8 @@ async def create_client(client_data: ClientData):
     created_client = create_client_data(client_data.dict())
     if created_client:
         return created_client
-    else:
-        raise HTTPException(status_code=400, detail="Unable to create client")
+    raise HTTPException(status_code=400, detail="Unable to create client")
+
 
 @router.get("/", response_model=ClientData)
 async def get_client(age: int, gender: int, work_experience: int):
@@ -87,8 +107,8 @@ async def get_client(age: int, gender: int, work_experience: int):
     client = get_client_data(age, gender, work_experience)
     if client:
         return client
-    else:
-        raise HTTPException(status_code=404, detail="Client not found")
+    raise HTTPException(status_code=404, detail="Client not found")
+
 
 @router.put("/", response_model=ClientData)
 async def update_client(client_update: ClientData):
@@ -107,8 +127,8 @@ async def update_client(client_update: ClientData):
     updated_client = update_client_data(client_update.dict())
     if updated_client:
         return updated_client
-    else:
-        raise HTTPException(status_code=404, detail="Unable to update client")
+    raise HTTPException(status_code=404, detail="Unable to update client")
+
 
 @router.delete("/", response_model=dict)
 async def delete_client(age: int, gender: int, work_experience: int):
@@ -128,5 +148,4 @@ async def delete_client(age: int, gender: int, work_experience: int):
     """
     if delete_client_data(age, gender, work_experience):
         return {"message": "Client deleted successfully"}
-    else:
-        raise HTTPException(status_code=404, detail="Client not found")
+    raise HTTPException(status_code=404, detail="Client not found")
