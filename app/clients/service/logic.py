@@ -7,7 +7,9 @@ import os
 import pickle
 from itertools import product
 import numpy as np
+from mysql.connector import Error, ProgrammingError, OperationalError, IntegrityError
 from app.database import get_db
+
 
 column_intervention = [
     'Life Stabilization',
@@ -356,8 +358,23 @@ def create_client_data(client_data: dict):
         db.rollback()
         cursor.close()
         return None
-    except Exception as e:
-        print(f"Unexpected error: {e}")
+    except IntegrityError as integrity_error:
+        print(f"Integrity error: {integrity_error}")
+        db.rollback()
+        cursor.close()
+        return None
+    except ProgrammingError as programming_error:
+        print(f"Programming error: {programming_error}")
+        db.rollback()
+        cursor.close()
+        return None
+    except OperationalError as operational_error:
+        print(f"Operational error: {operational_error}")
+        db.rollback()
+        cursor.close()
+        return None
+    except Error as db_error:
+        print(f"Database error: {db_error}")
         db.rollback()
         cursor.close()
         return None

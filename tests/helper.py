@@ -1,4 +1,10 @@
-# app/clients/tests/helpers.py
+"""
+Helper functions for testing the client service logic.
+
+This module provides utility functions and sample data
+to support unit tests for the client management system.
+"""
+
 
 def get_sample_client_data():
     """
