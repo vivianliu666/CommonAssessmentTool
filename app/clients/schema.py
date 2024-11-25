@@ -1,12 +1,14 @@
+"""
+Schema definitions for client data models.
+"""
+
 from pydantic import BaseModel
 
-"""
-Pydantic schemas for client data validation.
-"""
 class PredictionInput(BaseModel):
     """
     Input schema for client prediction data.
     """
+
     age: int
     gender: str
     work_experience: int

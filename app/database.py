@@ -1,16 +1,17 @@
 """
 Database connection utilities for the application.
 """
+
 import mysql.connector
 from mysql.connector import errorcode
 
 # Configure the database connection
 config = {
-    'user': 'root',
-    'password': '0000', #password
-    'host': 'localhost',
-    'port': '3306',
-    'database': 'client_db'
+    "user": "root",
+    "password": "0000",  # password
+    "host": "localhost",
+    "port": "3306",
+    "database": "client_db",
 }
 
 

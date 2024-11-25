@@ -5,8 +5,11 @@ Router for handling client-related API endpoints.
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.clients.service.logic import (
-    interpret_and_calculate, create_client_data, get_client_data,
-    update_client_data, delete_client_data
+    interpret_and_calculate,
+    create_client_data,
+    get_client_data,
+    update_client_data,
+    delete_client_data,
 )
 from app.clients.schema import PredictionInput
 
@@ -15,6 +18,7 @@ class ClientData(BaseModel):
     """
     Pydantic model for client data.
     """
+
     age: int
     gender: int
     work_experience: int
@@ -102,7 +106,8 @@ async def get_client(age: int, gender: int, work_experience: int):
         ClientData: The client data corresponding to the specified attributes.
 
     Raises:
-        HTTPException: Returns a 404 error if no client is found with the provided attributes.
+        HTTPException: Returns a 404 error if no client is found with the
+        provided attributes.
     """
     client = get_client_data(age, gender, work_experience)
     if client:
@@ -122,7 +127,8 @@ async def update_client(client_update: ClientData):
         ClientData: The updated client data.
 
     Raises:
-        HTTPException: Returns a 404 error if no client is found with the provided attributes, or if the update fails.
+        HTTPException: Returns a 404 error if no client is found with the
+        provided attributes, or if the update fails.
     """
     updated_client = update_client_data(client_update.dict())
     if updated_client:
@@ -144,7 +150,8 @@ async def delete_client(age: int, gender: int, work_experience: int):
         dict: A message indicating successful deletion.
 
     Raises:
-        HTTPException: Returns a 404 error if no client is found with the provided attributes, or if the deletion fails.
+        HTTPException: Returns a 404 error if no client is found with the
+        provided attributes, or if the deletion fails.
     """
     if delete_client_data(age, gender, work_experience):
         return {"message": "Client deleted successfully"}
