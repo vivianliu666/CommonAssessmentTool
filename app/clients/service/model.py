@@ -1,10 +1,11 @@
 """
-This module prepares a machine learning model using Random Forest for client success rate prediction.
-It defines functions to load data, train the model, and save/load the model using pickle.
+This module prepares a machine learning model using Random Forest
+for client success rate prediction.
+It defines functions to load data, train the model,
+and save/load the model using pickle.
 """
 
 import pickle
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
@@ -22,9 +23,10 @@ def prepare_models():
 
     categorical_cols = [
         'age', 'gender', 'work_experience', 'canada_workex', 'dep_num',
-        'canada_born', 'citizen_status', 'level_of_schooling', 'fluent_english',
-        'reading_english_scale', 'speaking_english_scale', 'writing_english_scale',
-        'numeracy_scale', 'computer_scale', 'transportation_bool', 'caregiver_bool',
+        'canada_born', 'citizen_status', 'level_of_schooling', 
+        'fluent_english', 'reading_english_scale', 'speaking_english_scale',
+        'writing_english_scale', 'numeracy_scale', 'computer_scale',
+        'transportation_bool', 'caregiver_bool',
         'housing', 'income_source', 'felony_bool', 'attending_school',
         'currently_employed', 'substance_use', 'time_unemployed',
         'need_mental_health_support_bool', 'employment_assistance',
@@ -36,7 +38,7 @@ def prepare_models():
     x_categorical_baseline = backend_code[categorical_cols]
     y_baseline = backend_code['success_rate']
 
-    x_train_baseline, x_test_baseline, y_train_baseline, y_test_baseline = train_test_split(
+    x_train_baseline, _, y_train_baseline, _ = train_test_split(
         x_categorical_baseline, y_baseline, test_size=0.2, random_state=42
     )
 
