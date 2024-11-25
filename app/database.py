@@ -1,3 +1,6 @@
+"""
+Database connection utilities for the application.
+"""
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -12,6 +15,9 @@ config = {
 
 
 def get_db():
+    """
+    Get a database connection instance.
+    """
     try:
         db = mysql.connector.connect(**config)
         yield db
