@@ -21,7 +21,8 @@ column_intervention = [
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 filename = os.path.join(current_dir, 'model.pkl')
-model = pickle.load(open(filename, "rb"))
+with open(filename, "rb") as file:
+    model = pickle.load(file)
 
 
 def clean_input_data(input_data):
@@ -349,8 +350,14 @@ def create_client_data(client_data: dict):
         db.commit()
         cursor.close()
         return client_data  # Returning the inserted data
+
+    except mysql.connector.Error as db_error:
+        print(f"Database error: {db_error}")
+        db.rollback()
+        cursor.close()
+        return None
     except Exception as e:
-        print(f"Error inserting client data: {e}")
+        print(f"Unexpected error: {e}")
         db.rollback()
         cursor.close()
         return None
