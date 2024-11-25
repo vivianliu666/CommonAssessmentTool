@@ -107,7 +107,7 @@ async def get_client(age: int, gender: int, work_experience: int):
         ClientData: The client data corresponding to the specified attributes.
 
     Raises:
-        HTTPException: Returns a 404 error if no client is found with the 
+        HTTPException: Returns a 404 error if no client is found with the
         provided attributes.
     """
     client = get_client_data(age, gender, work_experience)
@@ -122,14 +122,14 @@ async def update_client(client_update: ClientData):
     Update an existing client's data.
 
     Args:
-        client_update (ClientData): A model containing the client's updated 
+        client_update (ClientData): A model containing the client's updated
         data.
 
     Returns:
         ClientData: The updated client data.
 
     Raises:
-        HTTPException: Returns a 404 error if no client is found with the 
+        HTTPException: Returns a 404 error if no client is found with the
         provided attributes, or if the update fails.
     """
     updated_client = update_client_data(client_update.dict())
@@ -152,7 +152,7 @@ async def delete_client(age: int, gender: int, work_experience: int):
         dict: A message indicating successful deletion.
 
     Raises:
-        HTTPException: Returns a 404 error if no client is found with the 
+        HTTPException: Returns a 404 error if no client is found with the
         provided attributes, or if the deletion fails.
     """
     if delete_client_data(age, gender, work_experience):

@@ -23,7 +23,7 @@ def prepare_models():
 
     categorical_cols = [
         'age', 'gender', 'work_experience', 'canada_workex', 'dep_num',
-        'canada_born', 'citizen_status', 'level_of_schooling', 
+        'canada_born', 'citizen_status', 'level_of_schooling',
         'fluent_english', 'reading_english_scale', 'speaking_english_scale',
         'writing_english_scale', 'numeracy_scale', 'computer_scale',
         'transportation_bool', 'caregiver_bool',
