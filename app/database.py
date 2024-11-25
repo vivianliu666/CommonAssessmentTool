@@ -27,8 +27,8 @@ def get_db():
         mysql.connector.Error: If there is an issue with the connection.
     """
     try:
-        db = mysql.connector.connect(**config)
-        yield db
+        db_connection = mysql.connector.connect(**config)
+        yield db_connection
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             print("Something is wrong with your user name or password")
@@ -37,4 +37,4 @@ def get_db():
         else:
             print(err)
     else:
-        db.close()
+        db_connection.close()

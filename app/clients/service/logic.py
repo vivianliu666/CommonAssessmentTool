@@ -304,8 +304,8 @@ def create_client_data(client_data: dict):
     Returns:
         dict: The inserted client data if successful; None otherwise.
     """
-    db = next(get_db())
-    cursor = db.cursor()
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
 
     # Define the SQL INSERT statement
     query = """
@@ -349,33 +349,33 @@ def create_client_data(client_data: dict):
     # Execute the query and commit the transaction
     try:
         cursor.execute(query, values)
-        db.commit()
+        db_connection.commit()
         cursor.close()
         return client_data  # Returning the inserted data
 
     except mysql.connector.Error as db_error:
         print(f"Database error: {db_error}")
-        db.rollback()
+        db_connection.rollback()
         cursor.close()
         return None
     except IntegrityError as integrity_error:
         print(f"Integrity error: {integrity_error}")
-        db.rollback()
+        db_connection.rollback()
         cursor.close()
         return None
     except ProgrammingError as programming_error:
         print(f"Programming error: {programming_error}")
-        db.rollback()
+        db_connection.rollback()
         cursor.close()
         return None
     except OperationalError as operational_error:
         print(f"Operational error: {operational_error}")
-        db.rollback()
+        db_connection.rollback()
         cursor.close()
         return None
     except Error as db_error:
         print(f"Database error: {db_error}")
-        db.rollback()
+        db_connection.rollback()
         cursor.close()
         return None
 
@@ -398,8 +398,8 @@ def get_client_data(age: int, gender: int, work_experience: int):
         as unique identifiers to locate the client record.
         - Returns the client's data as a dictionary with column names as keys.
     """
-    db = next(get_db())
-    cursor = db.cursor()
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
     query = "SELECT * FROM clients WHERE age = %s AND gender = %s AND work_experience = %s"
     values = (age, gender, work_experience)
     cursor.execute(query, values)
@@ -428,12 +428,12 @@ def update_client_data(client_update: dict):
         (age, gender, work_experience).
         - After the update, the function retrieves and returns the updated record.
     """
-    db = next(get_db())
-    cursor = db.cursor()
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
     query = "UPDATE clients SET ... WHERE age = %s AND gender = %s AND work_experience = %s"
     values = (client_update['age'], client_update['gender'], client_update['work_experience'])
     cursor.execute(query, values)
-    db.commit()
+    db_connection.commit()
     cursor.close()
     updated_client = get_client_data(client_update['age'], client_update['gender'],
                                      client_update['work_experience'])
@@ -457,12 +457,12 @@ def delete_client_data(age: int, gender: int, work_experience: int):
         as unique identifiers to locate and delete the client record.
         - If no matching record is found, the function returns False.
     """
-    db = next(get_db())
-    cursor = db.cursor()
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
     query = "DELETE FROM clients WHERE age = %s AND gender = %s AND work_experience = %s"
     values = (age, gender, work_experience)
     cursor.execute(query, values)
-    db.commit()
+    db_connection.commit()
     affected_rows = cursor.rowcount
     cursor.close()
     return affected_rows > 0
