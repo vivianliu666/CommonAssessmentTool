@@ -33,3 +33,4 @@ class PredictionInput(BaseModel):
     substance_use: str
     time_unemployed: int
     need_mental_health_support_bool: str
+    # pylint: disable=duplicate-code

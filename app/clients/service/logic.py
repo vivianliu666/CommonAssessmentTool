@@ -7,7 +7,7 @@ import os
 import pickle
 from itertools import product
 import numpy as np
-from mysql.connector import Error, ProgrammingError, OperationalError, IntegrityError
+from mysql.connector import Error
 from app.database import get_db
 
 
@@ -353,31 +353,12 @@ def create_client_data(client_data: dict):
         cursor.close()
         return client_data  # Returning the inserted data
 
-    except mysql.connector.Error as db_error:
-        print(f"Database error: {db_error}")
-        db_connection.rollback()
-        cursor.close()
-        return None
-    except IntegrityError as integrity_error:
-        print(f"Integrity error: {integrity_error}")
-        db_connection.rollback()
-        cursor.close()
-        return None
-    except ProgrammingError as programming_error:
-        print(f"Programming error: {programming_error}")
-        db_connection.rollback()
-        cursor.close()
-        return None
-    except OperationalError as operational_error:
-        print(f"Operational error: {operational_error}")
-        db_connection.rollback()
-        cursor.close()
-        return None
     except Error as db_error:
         print(f"Database error: {db_error}")
         db_connection.rollback()
         cursor.close()
         return None
+
 
 
 def get_client_data(age: int, gender: int, work_experience: int):

@@ -19,6 +19,7 @@ class ClientData(BaseModel):
     Represents the schema for client data with various attributes such as
     demographics, work experience, and other personal information.
     """
+    # pylint: disable=duplicate-code
 
     age: int
     gender: int
