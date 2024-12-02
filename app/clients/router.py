@@ -19,41 +19,31 @@ class ClientData(BaseModel):
     Represents the schema for client data with various attributes such as
     demographics, work experience, and other personal information.
     """
-    # pylint: disable=duplicate-code
 
     age: int
-    gender: int
+    gender: str
     work_experience: int
     canada_workex: int
     dep_num: int
-    canada_born: int
-    citizen_status: int
-    level_of_schooling: int
-    fluent_english: int
+    canada_born: str
+    citizen_status: str
+    level_of_schooling: str
+    fluent_english: str
     reading_english_scale: int
     speaking_english_scale: int
     writing_english_scale: int
     numeracy_scale: int
     computer_scale: int
-    transportation_bool: int
-    caregiver_bool: int
-    housing: int
-    income_source: int
-    felony_bool: int
-    attending_school: int
-    currently_employed: int
-    substance_use: int
+    transportation_bool: str
+    caregiver_bool: str
+    housing: str
+    income_source: str
+    felony_bool: str
+    attending_school: str
+    currently_employed: str
+    substance_use: str
     time_unemployed: int
-    need_mental_health_support_bool: int
-    employment_assistance: int
-    life_stabilization: int
-    retention_services: int
-    specialized_services: int
-    employment_related_financial_supports: int
-    employer_financial_supports: int
-    enhanced_referrals: int
-    success_rate: int
-
+    need_mental_health_support_bool: str
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 

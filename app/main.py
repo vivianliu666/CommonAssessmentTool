@@ -29,3 +29,8 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods, including OPTIONS
     allow_headers=["*"],  # Allows all headers
 )
+
+# Define a root endpoint
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the FastAPI application!"}
