@@ -46,7 +46,7 @@ Response:
 Error Response:
 404: Client not found.
 
-Update Client Data
+3. Update Client Data
 URL: /clients/{client_id}
 Method: PUT
 Description: Updates a client's information.
