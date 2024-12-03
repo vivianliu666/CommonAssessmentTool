@@ -4,46 +4,19 @@ updating, retrieving, and deleting client data. It also includes prediction
 functionality.
 """
 
+import uuid
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-
+from mysql.connector import Error
+from app.database import get_db
 from app.clients.service.logic import interpret_and_calculate
-from app.clients.service.logic import create_client_data
-from app.clients.service.logic import get_client_data
-from app.clients.service.logic import update_client_data, delete_client_data
-from app.clients.schema import PredictionInput
+from app.clients.schema import PredictionInput, ClientData
 
 
-class ClientData(BaseModel):
+def generate_client_id():
     """
-    Represents the schema for client data with various attributes such as
-    demographics, work experience, and other personal information.
+    Generate a unique client ID using UUID4.
     """
-
-    age: int
-    gender: str
-    work_experience: int
-    canada_workex: int
-    dep_num: int
-    canada_born: str
-    citizen_status: str
-    level_of_schooling: str
-    fluent_english: str
-    reading_english_scale: int
-    speaking_english_scale: int
-    writing_english_scale: int
-    numeracy_scale: int
-    computer_scale: int
-    transportation_bool: str
-    caregiver_bool: str
-    housing: str
-    income_source: str
-    felony_bool: str
-    attending_school: str
-    currently_employed: str
-    substance_use: str
-    time_unemployed: int
-    need_mental_health_support_bool: str
+    return str(uuid.uuid4())
 
 router = APIRouter(prefix="/clients", tags=["clients"])
 
@@ -84,68 +57,162 @@ async def create_client(client_data: ClientData):
     raise HTTPException(status_code=400, detail="Unable to create client")
 
 
-@router.get("/", response_model=ClientData)
-async def get_client(age: int, gender: int, work_experience: int):
+@router.get("/{client_id}", response_model=ClientData)
+async def get_client(client_id: str):
     """
-    Retrieve a single client's data by their unique attributes.
+    Retrieve a single client's data by their unique ID.
 
     Args:
-        age (int): The age of the client.
-        gender (int): The gender of the client.
-        work_experience (int): The work experience of the client.
+        client_id (str): The unique ID of the client.
 
     Returns:
-        ClientData: The client data corresponding to the specified attributes.
-
-    Raises:
-        HTTPException: Returns a 404 error if no client is found with the
-        provided attributes.
+        ClientData: The client data corresponding to the specified ID.
     """
-    client = get_client_data(age, gender, work_experience)
+    client = get_client_data(client_id)
     if client:
         return client
     raise HTTPException(status_code=404, detail="Client not found")
 
 
-@router.put("/", response_model=ClientData)
-async def update_client(client_update: ClientData):
+@router.put("/{client_id}", response_model=ClientData)
+async def update_client(client_id: str, updates: dict):
     """
     Update an existing client's data.
 
     Args:
-        client_update (ClientData): A model containing the client's updated
-        data.
+        client_id (str): The unique ID of the client.
+        updates (dict): A dictionary of fields to update.
 
     Returns:
         ClientData: The updated client data.
-
-    Raises:
-        HTTPException: Returns a 404 error if no client is found with the
-        provided attributes, or if the update fails.
     """
-    updated_client = update_client_data(client_update.dict())
+    updated_client = update_client_data(client_id, updates)
     if updated_client:
         return updated_client
     raise HTTPException(status_code=404, detail="Unable to update client")
 
 
-@router.delete("/", response_model=dict)
-async def delete_client(age: int, gender: int, work_experience: int):
+@router.delete("/{client_id}", response_model=dict)
+async def delete_client(client_id: str):
     """
     Delete a client's data from the system.
 
     Args:
-        age (int): The age of the client.
-        gender (int): The gender of the client.
-        work_experience (int): The work experience of the client.
+        client_id (str): The unique ID of the client.
 
     Returns:
         dict: A message indicating successful deletion.
-
-    Raises:
-        HTTPException: Returns a 404 error if no client is found with the
-        provided attributes, or if the deletion fails.
     """
-    if delete_client_data(age, gender, work_experience):
+    if delete_client_data(client_id):
         return {"message": "Client deleted successfully"}
     raise HTTPException(status_code=404, detail="Client not found")
+
+
+def create_client_data(client_data: dict):
+    """
+    Insert a new client record into the database with a unique ID.
+
+    Args:
+        client_data (dict): A dictionary containing the client data to be inserted.
+
+    Returns:
+        dict: The inserted client data with the generated client ID.
+    """
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
+
+    # Generate a unique client ID
+    client_data["id"] = generate_client_id()
+
+    # Define the SQL INSERT statement
+    query = """
+    INSERT INTO clients (id, name, email, age, gender, work_experience)
+    VALUES (%s, %s, %s, %s, %s, %s)
+    """
+    values = (
+        client_data["id"], client_data["name"], client_data["email"],
+        client_data["age"], client_data["gender"], client_data["work_experience"]
+    )
+
+    try:
+        cursor.execute(query, values)
+        db_connection.commit()
+        return client_data
+    except Error as e:
+        print(f"Database error: {e}")
+        db_connection.rollback()
+    finally:
+        cursor.close()
+    return None
+
+
+def get_client_data(client_id: str):
+    """
+    Retrieve client data using the unique client ID.
+
+    Args:
+        client_id (str): The unique ID of the client.
+
+    Returns:
+        dict: The client data if found, or None otherwise.
+    """
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
+    query = "SELECT * FROM clients WHERE id = %s"
+    cursor.execute(query, (client_id,))
+    result = cursor.fetchone()
+    column_names = [desc[0] for desc in cursor.description]
+    cursor.close()
+    if result:
+        return dict(zip(column_names, result))
+    return None
+
+
+def update_client_data(client_id: str, updates: dict):
+    """
+    Update client data for the given client ID.
+
+    Args:
+        client_id (str): The unique client ID.
+        updates (dict): The fields to update and their new values.
+
+    Returns:
+        dict: The updated client data if successful, or None if an error occurred.
+    """
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
+
+    update_fields = ", ".join([f"{key} = %s" for key in updates.keys()])
+    query = f"UPDATE clients SET {update_fields} WHERE id = %s"
+    values = tuple(updates.values()) + (client_id,)
+
+    try:
+        cursor.execute(query, values)
+        db_connection.commit()
+        return get_client_data(client_id)
+    except Error as e:
+        print(f"Database error: {e}")
+        db_connection.rollback()
+    finally:
+        cursor.close()
+    return None
+
+
+def delete_client_data(client_id: str):
+    """
+    Delete client data for the given client ID.
+
+    Args:
+        client_id (str): The unique client ID.
+
+    Returns:
+        bool: True if the record was deleted, False otherwise.
+    """
+    db_connection = next(get_db())
+    cursor = db_connection.cursor()
+    query = "DELETE FROM clients WHERE id = %s"
+    cursor.execute(query, (client_id,))
+    db_connection.commit()
+    success = cursor.rowcount > 0
+    cursor.close()
+    return success
