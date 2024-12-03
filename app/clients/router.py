@@ -126,12 +126,12 @@ def create_client_data(client_data: dict):
 
     # Define the SQL INSERT statement
     query = """
-    INSERT INTO clients (id, name, email, age, gender, work_experience)
-    VALUES (%s, %s, %s, %s, %s, %s)
+    INSERT INTO clients (id, name, email, age, gender)
+    VALUES (%s, %s, %s, %s, %s)
     """
     values = (
         client_data["id"], client_data["name"], client_data["email"],
-        client_data["age"], client_data["gender"], client_data["work_experience"]
+        client_data["age"], client_data["gender"]
     )
 
     try:

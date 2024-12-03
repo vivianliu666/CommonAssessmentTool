@@ -8,7 +8,7 @@ from mysql.connector import errorcode
 # Configure the database connection
 config = {
     'user': 'root',
-    'password': '0000',  # password
+    'password': '130601.zmy',  # password
     'host': 'localhost',
     'port': '3306',
     'database': 'client_db'
